@@ -11,9 +11,9 @@
   <Description DefaultValue="An Add-in to extract Attachment from Emails"/>
   <IconUrl DefaultValue="https://localhost:5000/assets/logo-filled.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:5000/assets/logo-filled.png"/>
-  <SupportUrl DefaultValue="https://www.contoso.com/help"/>
+  <SupportUrl DefaultValue="https://www.SmartDoc.com/help"/>
   <AppDomains>
-    <AppDomain>https://www.contoso.com</AppDomain>
+    <AppDomain>https://www.SmartDoc.com</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Mailbox" />
@@ -97,7 +97,7 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:5000/taskpane.html" />
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="GroupLabel" DefaultValue="Contoso Add-in"/>
+        <bt:String id="GroupLabel" DefaultValue="SmartDoc Add-in"/>
         <bt:String id="TaskpaneButton.Label" DefaultValue="Show Taskpane"/>
         <!-- <bt:String id="ActionButton.Label" DefaultValue="Perform an action"/> -->
       </bt:ShortStrings>
