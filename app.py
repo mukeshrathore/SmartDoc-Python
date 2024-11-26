@@ -50,7 +50,7 @@ def iconlogofilled():
 @app.route("/submit", methods=["POST"])
 def submit():
     print("Submit button clicked")
-    directory = "AQQkADAwATMwMAExLTg2YTctZDUxZi0wMAItMDAKABAAXYgUpp2KskWsS44VFQDFrTs="
+    directory = "c:/Users/mukes/Downloads/SmartDoc/AQQkADAwATMwMAExLTg2YTctZDUxZi0wMAItMDAKABAAXYgUpp2KskWsS44VFQDFrTs="
     subprocess.run(["python", "./classifile.py", directory])
     return "Success", 200
 
