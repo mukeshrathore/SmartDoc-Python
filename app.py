@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, json
 from flask import render_template
 from flask.helpers import send_file
 import os
@@ -23,35 +23,26 @@ def taskpane():
 def commands():
     return render_template("commands.html")
 
-# @app.route("/assets/icon-16.png")
-# def icon16():
-#     return send_file("./static/assets/icon-16.png",mimetype='image/png')
-
-# @app.route("/assets/icon-32.png")
-# def icon32():
-#     return send_file("./static/assets/icon-32.png",mimetype='image/png')
-
-# @app.route("/assets/icon-64.png")
-# def icon64():
-#     return send_file("./static/assets/icon-64.png",mimetype='image/png')
-
-# @app.route("/assets/icon-80.png")
-# def icon128():
-#     return send_file("./static/assets/icon-80.png",mimetype='image/png')
-
 @app.route("/assets/logo-filled.png")
 def iconlogofilled():
     return send_file("./static/assets/logo-filled.png",mimetype='image/png')
 
-# @app.route('/favicon.ico')
-# def favicon():
-#     return send_file('./static/favicon.ico', mimetype='image/vnd.microsoft.icon')
-
 @app.route("/submit", methods=["POST"])
 def submit():
-    print("Submit button clicked")
-    directory = "c:/Users/mukes/Downloads/SmartDoc/AQQkADAwATMwMAExLTg2YTctZDUxZi0wMAItMDAKABAAXYgUpp2KskWsS44VFQDFrTs="
-    subprocess.run(["python", "./classifile.py", directory])
+    print("Request payload:", request.get_json())
+
+    print("manifestData conversationId:", request.get_json()["manifestData"].get("conversationId"))
+    conversationId = request.get_json()["manifestData"].get("conversationId")
+    directory = os.path.join(r'c:/Users/mukes/Downloads/SmartDoc',conversationId)
+    
+    #create a dirextory with the conversationId as the name
+    os.mkdir(directory)
+    
+    #copy the received data into json file and save it in the directory
+    with open(os.path.join(directory, "manifest.json"), "w") as f:
+        f.write(json.dumps(request.get_json()["manifestData"]))
+
+    # subprocess.run(["python", "./classifile.py", directory])
     return "Success", 200
 
 if __name__ == "__main__":
@@ -62,6 +53,7 @@ if __name__ == "__main__":
 
         # Assuming the ensure_certificates_are_installed function updates the default paths as needed
         from devcerts.defaults import localhost_certificate_path, localhost_key_path
+        from flask import request
         ssl_context = (localhost_certificate_path, localhost_key_path)
         
         app.run(debug=True, ssl_context=ssl_context)
