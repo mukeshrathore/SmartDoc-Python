@@ -6,7 +6,7 @@
 Office.onReady((info) => {
   if (info.host === Office.HostType.Outlook) {
     const consentCheckbox = document.getElementById("consent-checkbox");
-    const manifestDataContainer = document.getElementById("manifestData-container");
+    const dataDOMContainer = document.getElementById("manifestData-container");
     const errorMessage = document.getElementById("error-message");
     const attachmentDOMList = document.getElementById("attachments-list");
     const submitButton = document.getElementById("submit-button");
@@ -65,24 +65,25 @@ Office.onReady((info) => {
       // Enable submit button + display manifest and attachments on click of checkbox only if attachments are present
       if (attachmentDOMList.childElementCount) {
         submitButton.disabled = !event.target.checked;
-        manifestDataContainer.style.display = "block";
+        dataDOMContainer.style.display = "block";
       } else {
         errorMessage.style.display = "block";
       }
-    });
+    }); // end of consentCheckbox.addEventListener
 
     submitButton.addEventListener("click", async () => {
+
       downloadAttachments();
-      downloadMetadata();
-      successMessage.style.display = "block";
+      downloadManifestdata();
+
       const response = await fetch('/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          metadata: 'metadata',
-          attachments: 'attachments'
+          manifestData,
+          attachmentList
         })
       });
 
@@ -93,7 +94,7 @@ Office.onReady((info) => {
         console.error('Failed to submit data');
       }
 
-    });
+    }); // end of submitButton.addEventListener
 
     function downloadAttachments() {
       Office.context.mailbox.item.attachments.forEach(async (attachment) => {
@@ -128,9 +129,10 @@ Office.onReady((info) => {
           }
         });
       });
-    }
+    } // end of function downloadAttachments
 
-    function downloadMetadata() {
+    function downloadManifestdata() {
+      manifestData.attachments = attachmentList;
       const jsonString = JSON.stringify(manifestData, null, 2);
       const blob = new Blob([jsonString], { type: "application/json" });
       const link = document.createElement("a");
@@ -140,6 +142,8 @@ Office.onReady((info) => {
       link.click();
       document.body.removeChild(link);
 
-    }
-  }
-});
+    } // end of function downloadMetadata
+
+  } // end of if (info.host === Office.HostType.Outlook)
+
+}); // end of Office.onReady
