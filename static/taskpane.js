@@ -73,9 +73,12 @@ Office.onReady((info) => {
     }); // end of consentCheckbox.addEventListener
 
     submitButton.addEventListener("click", async () => {
+      // adding attachment names to manifest data
+      manifestData.attachments = attachmentList;
+
 
       downloadAttachments();
-      downloadManifestdata();
+      // downloadManifestdata();
 
       const response = await fetch('/submit', {
         method: 'POST',
@@ -89,9 +92,13 @@ Office.onReady((info) => {
       });
 
       if (response.ok) {
+        // display success message
         successMessage.style.display = "block";
+
+        // hiding the submit button and consent container
         submitButton.style.display = "none";
         consentDOMContainer.style.display = "none";
+
         console.log('Successfully submitted data');
       } else {
         console.error('Failed to submit data');
@@ -134,18 +141,18 @@ Office.onReady((info) => {
       });
     } // end of function downloadAttachments
 
-    function downloadManifestdata() {
-      manifestData.attachments = attachmentList;
-      const jsonString = JSON.stringify(manifestData, null, 2);
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "manifest.json";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // function downloadManifestdata() {
+    //   manifestData.attachments = attachmentList;
+    //   const jsonString = JSON.stringify(manifestData, null, 2);
+    //   const blob = new Blob([jsonString], { type: "application/json" });
+    //   const link = document.createElement("a");
+    //   link.href = URL.createObjectURL(blob);
+    //   link.download = "manifest.json";
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   document.body.removeChild(link);
 
-    } // end of function downloadMetadata
+    // } // end of function downloadMetadata
 
   } // end of if (info.host === Office.HostType.Outlook)
 
