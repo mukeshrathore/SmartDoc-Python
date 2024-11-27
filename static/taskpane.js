@@ -6,9 +6,9 @@
 Office.onReady((info) => {
   if (info.host === Office.HostType.Outlook) {
     const consentCheckbox = document.getElementById("consent-checkbox");
-    const proceedButton = document.getElementById("proceed-button");
+    // const proceedButton = document.getElementById("proceed-button");
     const manifestDataContainer = document.getElementById("manifestData-container");
-    const instructions = document.getElementById("instructions");
+    const errorMessage = document.getElementById("error-message");
     const attachmentsList = document.getElementById("attachments-list");
     const submitButton = document.getElementById("submit-button");
     const successMessage = document.getElementById("success-message");
@@ -16,22 +16,52 @@ Office.onReady((info) => {
     let manifestData = null;
     let attachments = [];
 
-    consentCheckbox.addEventListener("change", (event) => {
-      console.log('checkbox event change: ', event, event.target.checked);
-      proceedButton.disabled = !event.target.checked;
+    // Mock Metadata Fetch Function
+    async function fetchManifestdata() {
+      // step 1: fetch manifest from email
+      return {
+        sender: Office.context.mailbox.item.sender.emailAddress.toString(),
+        to: Office.context.mailbox.item.to[0].emailAddress.toString(),
+        subject: Office.context.mailbox.item.subject.toString(),
+        conversationId: Office.context.mailbox.item.conversationId.toString(),
+        itemId: Office.context.mailbox.item.itemId.toString(),
+        timeStamp: Office.context.mailbox.item.dateTimeCreated.getTime().toString()
+      };
+    }
+
+    // Call functions from script.js
+    fetchManifestdata().then(manifestData => {
+      // step 2: print manifest from email
+      displayMetadata(manifestData);
     });
 
-    proceedButton.addEventListener("click", async () => {
-      manifestData = await fetchManifestdata(); // Mocking API call
-      attachments = await fetchAttachments(); // Mocking API call
+    // Mock Attachments Fetch Function
+    async function fetchAttachments() {
+      // step 3: fetch attachments from email
+      const names = [];
+      // fetching attachments names from email
+      Office.context.mailbox.item.attachments.forEach(async (attachment) => {
+        names.push({
+          id: attachment.id,
+          name: attachment.name,
+        });
+      });
+      return names;
+    }
 
-      if (!attachments || attachments.length === 0) {
-        instructions.style.display = "block";
+    fetchAttachments().then(attachments => {
+      // step 4: print attachments from email
+      displayAttachments(attachments);
+    });
+
+    consentCheckbox.addEventListener("change", (event) => {
+      // Enable submit button + display manifest and attachments on click of checkbox only if attachments are present
+      if (attachmentsList.childElementCount) {
+        submitButton.disabled = !event.target.checked;
+        attachmentsList.style.display = "block";
+        manifestDataContainer.style.display = "block";
       } else {
-        instructions.style.display = "none";
-        displayMetadata(manifestData);
-        displayAttachments(attachments);
-        submitButton.style.display = "inline-block";
+        errorMessage.style.display = "block";
       }
     });
 
@@ -59,33 +89,8 @@ Office.onReady((info) => {
 
     });
 
-    // Mock Metadata Fetch Function
-    async function fetchManifestdata() {
-      return {
-        sender: Office.context.mailbox.item.sender.emailAddress.toString(),
-        to: Office.context.mailbox.item.to[0].emailAddress.toString(),
-        subject: Office.context.mailbox.item.subject.toString(),
-        conversationId: Office.context.mailbox.item.conversationId.toString(),
-        itemId: Office.context.mailbox.item.itemId.toString(),
-        timeStamp: Office.context.mailbox.item.dateTimeCreated.getTime().toString()
-      };
-    }
-
-    // Mock Attachments Fetch Function
-    async function fetchAttachments() {
-      const names = [];
-      // fetching attachments names from email
-      Office.context.mailbox.item.attachments.forEach(async (attachment) => {
-        names.push({
-          id: attachment.id,
-          name: attachment.name,
-        });
-      });
-      return names;
-    }
-
     function displayMetadata(manifestData) {
-      manifestDataContainer.style.display = "block";
+      // step 5: display manifest from email      
       document.getElementById("manifestData-sender").textContent = manifestData.sender;
       document.getElementById("manifestData-to").textContent = manifestData.to;
       document.getElementById("manifestData-subject").textContent = manifestData.subject;
@@ -95,7 +100,7 @@ Office.onReady((info) => {
     }
 
     function displayAttachments(attachments) {
-      attachmentsList.style.display = "block";
+      // step 6: display attachments from email      
       attachmentsList.innerHTML = "";
       attachments.forEach((attachment) => {
         const li = document.createElement("li");
@@ -152,16 +157,5 @@ Office.onReady((info) => {
       document.body.removeChild(link);
 
     }
-
-    // Call functions from script.js
-    fetchManifestdata().then(manifestData => {
-      console.log("Metadata:", manifestData);
-      displayMetadata(manifestData);
-    });
-
-    fetchAttachments().then(attachments => {
-      console.log("Attachments:", attachments);
-      displayAttachments(attachments);
-    });
   }
 });

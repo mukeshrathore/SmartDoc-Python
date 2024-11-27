@@ -36,14 +36,16 @@
                 I consent to submit attachments from this email to SmartDoc Assist.
             </label>
 
-            <button id="proceed-button" class="primary-button" disabled>SubmitP</button>
-            <button id="submit-button" class="primary-button" style="display: none;">Submit</button>
+            <!-- <button id="proceed-button" class="primary-button" disabled>SubmitP</button> -->
+            <button id="submit-button" class="primary-button" disabled>Submit</button>
+
             <div id="success-message" class="instructions" style="display: none; color: green;">
                 Successfully forwarded data along with attachments to SmartDoc Assist for further processing.
             </div>
 
-            <div id="instructions" class="instructions" style="display: none; color: red;">No attachments found in this
-                email</div>
+            <div id="error-message" class="instructions" style="display: none; color: red;">This email can't be
+                processed
+                as there are no attachments found.</div>
 
             <div id="manifestData-container" style="display: none; width: 100%;">
                 <strong>Email Details:</strong>
