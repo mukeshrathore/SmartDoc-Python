@@ -1,3 +1,4 @@
+import shutil
 from flask import Flask, json
 from flask import render_template
 from flask.helpers import send_file
@@ -35,7 +36,12 @@ def submit():
     conversationId = request.get_json()["manifestData"].get("conversationId")
     directory = os.path.join(r'c:/Users/mukes/Downloads/SmartDoc',conversationId)
     
-    #create a dirextory with the conversationId as the name
+    # Remove the directory if it already exists
+    if os.path.exists(directory):
+        print(f"Directory {directory} already exists. Recreating it.")
+        shutil.rmtree(directory)
+        
+    #create a directory with the conversationId as the name
     os.mkdir(directory)
     
     #copy the received data into json file and save it in the directory
