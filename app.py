@@ -1,3 +1,4 @@
+import base64
 import shutil
 from flask import Flask, json
 from flask import render_template
@@ -30,10 +31,10 @@ def iconlogofilled():
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    print("Request payload:", request.get_json())
-
-    print("manifestData conversationId:", request.get_json()["manifestData"].get("conversationId"))
-    conversationId = request.get_json()["manifestData"].get("conversationId")
+    data = request.get_json()
+    attachments = data['attachments']
+    manifestData = data['manifestData']
+    conversationId = manifestData.get("conversationId")
     directory = os.path.join(r'c:/Users/mukes/Downloads/SmartDoc',conversationId)
     
     # Remove the directory if it already exists
@@ -43,17 +44,30 @@ def submit():
         
     #create a directory with the conversationId as the name
     os.mkdir(directory)
+
+    for attachment in attachments:
+        name = attachment['name']
+        content = attachment['content']
+        content_type = attachment['contentType']    
+
+        # Decode the base64 content
+        file_content = base64.b64decode(content)
+        
+        # Save the file
+        file_path = os.path.join(directory, name)
+        with open(file_path, 'wb') as f:
+            f.write(file_content)        
     
     #copy the received data into json file and save it in the directory
     with open(os.path.join(directory, "manifest.json"), "w") as f:
-        f.write(json.dumps(request.get_json()["manifestData"]))
+        f.write(json.dumps(manifestData, indent=4))
 
     # subprocess.run(["python", "./classifile.py", directory])
-    return "Success", 200
+    return "Attachments and Manifest uploaded successfully", 200
 
 if __name__ == "__main__":
     if os.environ.get("APP_MODE") == "DEV":
-        print("Running in DEV mode")
+        # print("Running in DEV mode")
         # Call the function to ensure certificates are installed and valid
         ensure_certificates_are_installed()
 
