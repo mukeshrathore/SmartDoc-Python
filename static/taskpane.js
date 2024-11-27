@@ -5,15 +5,16 @@
 
 Office.onReady((info) => {
   if (info.host === Office.HostType.Outlook) {
+    const consentDOMContainer = document.getElementById("consent-container");
     const consentCheckbox = document.getElementById("consent-checkbox");
-    const manifestDataContainer = document.getElementById("manifestData-container");
+    const dataDOMContainer = document.getElementById("manifestData-container");
     const errorMessage = document.getElementById("error-message");
     const attachmentDOMList = document.getElementById("attachments-list");
     const submitButton = document.getElementById("submit-button");
     const successMessage = document.getElementById("success-message");
 
     let manifestData = null;
-    let attachmentList = [];
+    let attachmentNameList = [];
 
     // declare manifest data
     async function fetchManifestdata() {
@@ -41,105 +42,120 @@ Office.onReady((info) => {
     fetchManifestdata();
 
     // declare fetch attachments function
-    async function fetchAttachments() {
+    async function fetchAttachmentNames() {
       // step 3: fetch attachments from email
       Office.context.mailbox.item.attachments.forEach(async (attachment) => {
-        attachmentList.push(attachment.name);
+        attachmentNameList.push(attachment.name);
       });
 
       // step 6: display attachments from email      
       attachmentDOMList.innerHTML = "";
-      attachmentList.forEach((attachmentName) => {
+      attachmentNameList.forEach((attachmentName) => {
         const li = document.createElement("li");
         li.textContent = attachmentName;
         attachmentDOMList.appendChild(li);
       });
 
-      return attachmentList;
+      return attachmentNameList;
     }
 
     // Call fetchAttachments function
-    fetchAttachments();
+    fetchAttachmentNames();
 
     consentCheckbox.addEventListener("change", (event) => {
       // Enable submit button + display manifest and attachments on click of checkbox only if attachments are present
       if (attachmentDOMList.childElementCount) {
         submitButton.disabled = !event.target.checked;
-        manifestDataContainer.style.display = "block";
+        dataDOMContainer.style.display = "block";
       } else {
         errorMessage.style.display = "block";
       }
-    });
+    }); // end of consentCheckbox.addEventListener
 
     submitButton.addEventListener("click", async () => {
       downloadAttachments();
-      downloadMetadata();
-      successMessage.style.display = "block";
-      const response = await fetch('/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          metadata: 'metadata',
-          attachments: 'attachments'
-        })
-      });
+    }); // end of submitButton.addEventListener
 
-      if (response.ok) {
-        successMessage.style.display = "block";
-        console.log('Successfully submitted data');
-      } else {
-        console.error('Failed to submit data');
-      }
+    async function downloadAttachments() {
+      const attachments = Office.context.mailbox.item.attachments;
+      const attachmentPromises = attachments.map((attachment) => {
+        return new Promise((resolve, reject) => {
+          const attachmentId = attachment.id;
+          Office.context.mailbox.item.getAttachmentContentAsync(attachmentId, (result) => {
+            if (result.status === Office.AsyncResultStatus.Succeeded) {
+              const content = result.value.content;
+              const contentType = result.value.format === Office.MailboxEnums.AttachmentContentFormat.Base64 ? 'application/octet-stream' : attachment.contentType;
 
-    });
-
-    function downloadAttachments() {
-      Office.context.mailbox.item.attachments.forEach(async (attachment) => {
-        const attachmentId = attachment.id;
-        Office?.context?.mailbox?.item?.getAttachmentContentAsync(attachmentId, (result) => {
-          if (result.status === Office.AsyncResultStatus.Succeeded) {
-            const content = result.value.content;
-            const contentType = result.value.format === Office.MailboxEnums.AttachmentContentFormat.Base64 ? 'application/octet-stream' : attachment.contentType;
-
-            let blob;
-            if (result.value.format === Office.MailboxEnums.AttachmentContentFormat.Base64) {
-              const byteCharacters = atob(content);
-              const byteNumbers = new Array(byteCharacters.length);
-              for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              let blob;
+              if (result.value.format === Office.MailboxEnums.AttachmentContentFormat.Base64) {
+                const byteCharacters = atob(content);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                blob = new Blob([byteArray], { type: contentType });
+              } else {
+                blob = new Blob([content], { type: contentType });
               }
-              const byteArray = new Uint8Array(byteNumbers);
-              blob = new Blob([byteArray], { type: contentType });
-            } else {
-              blob = new Blob([content], { type: contentType });
-            }
 
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = attachment.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          } else {
-            console.error("Error fetching attachment content", result.error);
-          }
+              const reader = new FileReader();
+              reader.onload = function () {
+                const base64data = reader.result.split(',')[1];
+                resolve({
+                  name: attachment.name,
+                  content: base64data
+                });
+              };
+              reader.readAsDataURL(blob);
+            } else {
+              reject("Error fetching attachment content");
+            }
+          });
         });
       });
-    }
 
-    function downloadMetadata() {
-      const jsonString = JSON.stringify(manifestData, null, 2);
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "manifest.json";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      await sendEmailData(attachmentPromises);
 
-    }
-  }
-});
+    } // end of function downloadAttachments
+
+    async function sendEmailData(attachmentPromises) {
+      try {
+        manifestData.attachmentNames = attachmentNameList;
+        const attachmentContentList = await Promise.all(attachmentPromises);
+        fetch('/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            manifestData,
+            attachments: attachmentContentList
+          })
+        }).then(response => {
+          if (response.ok) {
+            // display success message
+            successMessage.style.display = "block";
+
+            // hiding the submit button and consent container
+            submitButton.style.display = "none";
+            consentDOMContainer.style.display = "none";
+
+            // log response
+            response.text().then(text => {
+              console.log(text);
+            });
+
+          } else {
+            console.error('Failed to submit data');
+          }
+        });
+      } catch (error) {
+        console.error(error);
+      }
+
+    } // end of function sendEmailData
+
+  } // end of if (info.host === Office.HostType.Outlook)
+
+}); // end of Office.onReady
