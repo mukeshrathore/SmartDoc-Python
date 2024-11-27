@@ -5,6 +5,7 @@
 
 Office.onReady((info) => {
   if (info.host === Office.HostType.Outlook) {
+    const consentDOMContainer = document.getElementById("consent-container");
     const consentCheckbox = document.getElementById("consent-checkbox");
     const dataDOMContainer = document.getElementById("manifestData-container");
     const errorMessage = document.getElementById("error-message");
@@ -89,6 +90,8 @@ Office.onReady((info) => {
 
       if (response.ok) {
         successMessage.style.display = "block";
+        submitButton.style.display = "none";
+        consentDOMContainer.style.display = "none";
         console.log('Successfully submitted data');
       } else {
         console.error('Failed to submit data');
