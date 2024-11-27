@@ -6,7 +6,6 @@
 Office.onReady((info) => {
   if (info.host === Office.HostType.Outlook) {
     const consentCheckbox = document.getElementById("consent-checkbox");
-    // const proceedButton = document.getElementById("proceed-button");
     const manifestDataContainer = document.getElementById("manifestData-container");
     const errorMessage = document.getElementById("error-message");
     const attachmentsList = document.getElementById("attachments-list");
@@ -58,7 +57,6 @@ Office.onReady((info) => {
       // Enable submit button + display manifest and attachments on click of checkbox only if attachments are present
       if (attachmentsList.childElementCount) {
         submitButton.disabled = !event.target.checked;
-        attachmentsList.style.display = "block";
         manifestDataContainer.style.display = "block";
       } else {
         errorMessage.style.display = "block";
