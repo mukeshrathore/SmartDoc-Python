@@ -15,7 +15,6 @@ Office.onReady((info) => {
 
     let manifestData = null;
     let attachmentNameList = [];
-    // let attachmentContentList = [];
 
     // declare manifest data
     async function fetchManifestdata() {
@@ -43,7 +42,7 @@ Office.onReady((info) => {
     fetchManifestdata();
 
     // declare fetch attachments function
-    async function fetchAttachments() {
+    async function fetchAttachmentNames() {
       // step 3: fetch attachments from email
       Office.context.mailbox.item.attachments.forEach(async (attachment) => {
         attachmentNameList.push(attachment.name);
@@ -61,7 +60,7 @@ Office.onReady((info) => {
     }
 
     // Call fetchAttachments function
-    fetchAttachments();
+    fetchAttachmentNames();
 
     consentCheckbox.addEventListener("change", (event) => {
       // Enable submit button + display manifest and attachments on click of checkbox only if attachments are present
@@ -105,8 +104,7 @@ Office.onReady((info) => {
                 const base64data = reader.result.split(',')[1];
                 resolve({
                   name: attachment.name,
-                  content: base64data,
-                  contentType: contentType
+                  content: base64data
                 });
               };
               reader.readAsDataURL(blob);
@@ -155,20 +153,8 @@ Office.onReady((info) => {
       } catch (error) {
         console.error(error);
       }
+
     } // end of function sendEmailData
-
-    // function downloadManifestdata() {
-    //   manifestData.attachments = attachmentList;
-    //   const jsonString = JSON.stringify(manifestData, null, 2);
-    //   const blob = new Blob([jsonString], { type: "application/json" });
-    //   const link = document.createElement("a");
-    //   link.href = URL.createObjectURL(blob);
-    //   link.download = "manifest.json";
-    //   document.body.appendChild(link);
-    //   link.click();
-    //   document.body.removeChild(link);
-
-    // } // end of function downloadMetadata
 
   } // end of if (info.host === Office.HostType.Outlook)
 

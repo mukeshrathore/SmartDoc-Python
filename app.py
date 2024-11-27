@@ -48,26 +48,26 @@ def submit():
     for attachment in attachments:
         name = attachment['name']
         content = attachment['content']
-        content_type = attachment['contentType']    
 
         # Decode the base64 content
         file_content = base64.b64decode(content)
         
-        # Save the file
+        # Save the pdf files in the directory
         file_path = os.path.join(directory, name)
         with open(file_path, 'wb') as f:
             f.write(file_content)        
     
-    #copy the received data into json file and save it in the directory
+    # Save the mainfest file in the directory
     with open(os.path.join(directory, "manifest.json"), "w") as f:
         f.write(json.dumps(manifestData, indent=4))
 
+    # Running the classifile model
     # subprocess.run(["python", "./classifile.py", directory])
     return "Attachments and Manifest uploaded successfully", 200
 
 if __name__ == "__main__":
     if os.environ.get("APP_MODE") == "DEV":
-        # print("Running in DEV mode")
+        print("Running in DEV mode")
         # Call the function to ensure certificates are installed and valid
         ensure_certificates_are_installed()
 
@@ -77,7 +77,6 @@ if __name__ == "__main__":
         ssl_context = (localhost_certificate_path, localhost_key_path)
         
         app.run(debug=True, ssl_context=ssl_context)
-
 
     else:
         app.run(debug=True)
