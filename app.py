@@ -31,6 +31,7 @@ def iconlogofilled():
 
 @app.route("/submit", methods=["POST"])
 def submit():
+    print("\nReceived a submit POST request from the outlook addin")
     data = request.get_json()
     attachments = data['attachments']
     manifestData = data['manifestData']
@@ -39,7 +40,7 @@ def submit():
     
     # Remove the directory if it already exists
     if os.path.exists(directory):
-        print(f"Directory {directory} already exists. Recreating it.")
+        print(f"\nDirectory {directory} already exists. Recreating it. \n")
         shutil.rmtree(directory)
         
     #create a directory with the conversationId as the name
@@ -55,14 +56,17 @@ def submit():
         # Save the pdf files in the directory
         file_path = os.path.join(directory, name)
         with open(file_path, 'wb') as f:
+            print(f"Writing file {file_path}")
             f.write(file_content)        
     
     # Save the mainfest file in the directory
     with open(os.path.join(directory, "manifest.json"), "w") as f:
+        print("\nWriting manifest file.")
         f.write(json.dumps(manifestData, indent=4))
 
     # Running the classifile model
-    # subprocess.run(["python", "./classifile.py", directory])
+    print("\nRunning the classifile model \n")
+    subprocess.run(["python", "./classifile.py", directory])
     return "Attachments and Manifest uploaded successfully", 200
 
 if __name__ == "__main__":
