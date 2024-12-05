@@ -79,7 +79,7 @@ if __name__ == "__main__":
     directory = sys.argv[1] if len(sys.argv) > 1 else ""
     # path = r'c:/Users/mukes/Downloads/SmartDoc/'+''+'/Estate Processing Checklist - 595906 (7).pdf'
     # path1 = os.path.join(r'c:/Users/mukes/Downloads/SmartDoc',directory)
-    path = os.path.join(directory, 'Estate Processing Checklist - 595906 (7).pdf')
+    path = os.path.join(directory, 'Estate Processing Checklist - 595906.pdf')
 
     preliminary_string = classification(PDFloader(path))
     category = Get_Top_Category(str(preliminary_string))
